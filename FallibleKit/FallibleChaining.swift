@@ -8,7 +8,7 @@
 
 import Foundation
 
-infix operator => { associativity left precedence 80 }
+infix operator => { associativity left precedence 100 }
 
 /// The function chaining operator is used to link several operations together into a 
 /// pipeline. You begin the pipeline with a value, then use the `=>` operator 
