@@ -77,7 +77,8 @@ public func mapSuccess<T, U>(transform: T -> U) -> Fallible<T> -> Fallible<U> {
 /// 
 /// If the current Fallible operation failed, `recover` extracts the error and 
 /// passes it to the `recovery` function. It then returns the result of 
-/// `recovery`, which should itself be Fallible.
+/// `recovery`, which should itself be Fallible. (If the result is not Fallible, you 
+/// want `correct` instead.)
 /// 
 /// If the current Fallible operation succeeded, `recover` does not run 
 /// `recovery`, instead returning the current result unchanged.
@@ -99,7 +100,8 @@ public func recover<T>(recovery: NSError -> Fallible<T>)(input: Fallible<T>) -> 
 /// 
 /// If the current Fallible operation failed, `recover` extracts the error and 
 /// passes it to the `recovery` function. It then returns the result of 
-/// `recovery`, which should itself be Fallible.
+/// `recovery`, which should itself be Fallible. (If the result is not Fallible, you 
+/// want `correct` instead.)
 /// 
 /// If the current Fallible operation succeeded, `recover` does not run 
 /// `recovery`, instead returning the current result unchanged.
@@ -148,4 +150,42 @@ public func mapFailure<T>(transform: NSError -> NSError) -> Fallible<T> -> Falli
 /// the error set combining operator, `|`.
 public func mapFailure<T>(from errorSet: ErrorSet, #transform: NSError -> NSError) -> Fallible<T> -> Fallible<T> {
     return recover(from: errorSet) { error in Fallible.Failure (transform(error)) }
+}
+
+/// When used with the Fallible chaining operator (`=>`), unconditionally replaces 
+/// the result of a failed Fallible operation with a successful result. The correction 
+/// closure cannot fail, and thus the closure passed to this function does not 
+/// return a fallible type. If your attempted correction can itself fail, you want 
+/// `recover` instead.
+/// 
+/// To correct only certain errors, see `correct(from:correction:)`.
+public func correct<T>(correction: NSError -> T) -> Fallible<T> -> Fallible<T> {
+    return recover { error in Fallible(succeeded: correction(error)) }
+}
+
+/// When used with the Fallible chaining operator (`=>`), unconditionally replaces 
+/// the result of a failed Fallible operation with a successful result. The correction 
+/// closure cannot fail, and thus the closure passed to this function does not 
+/// return a fallible type. If your attempted correction can itself fail, you want 
+/// `recover` instead.
+/// 
+/// `correct(from:correction:)` might be used to replace missing data with a new, 
+/// empty data structure, while allowing other errors to be handled normally.
+/// 
+/// The `correct(from:correction:)` variant only runs the `correction` 
+/// function if the error matches the particular error set specified in the 
+/// parameters. All other failures pass through `correct(from:correction:)` 
+/// unchanged. To transform all failures, see `correct(correction:)`. To 
+/// construct error sets, see `error(domain:code:)`, `errors(domain:codes:)`, and 
+/// the error set combining operator, `|`.
+public func correct<T>(from errorSet: ErrorSet, #correction: NSError -> T) -> Fallible<T> -> Fallible<T> {
+    return recover(from: errorSet) { error in Fallible(succeeded: correction(error)) }
+}
+
+/// When used with the Fallible chaining operator (`=>`), removes a level of 
+/// nesting from a Fallible operation, transforming a `Fallible<Fallible<T>>` into
+/// a `Fallible<T>`. Thus, if either `param` or `param.value!` is a `Fallible.Failure`, 
+/// the flattened `Fallible` will be a `Failure`; otherwise it will be a `Success`.
+public func flatten<T>(value: Fallible<Fallible<T>>) -> Fallible<T> {
+    return value => then { value in value }
 }
