@@ -90,7 +90,7 @@ public enum FallibleError: Int {
             if let code = FallibleError(error: error) {
                 switch code {
                 case .MultipleErrors:
-                    return error.userInfo![DetailedErrorsKey] as [NSError]
+                    return error.userInfo![DetailedErrorsKey] as! [NSError]
                 }
             }
             return [error]
@@ -109,7 +109,7 @@ public enum FallibleError: Int {
                 DetailedErrorsKey: flatErrors, 
                 NSLocalizedDescriptionKey: code.localizedDescription
             ]
-            return NSError(domain: Domain, code: code.rawValue, userInfo: userInfo)
+            return NSError(domain: Domain, code: code.rawValue, userInfo: userInfo as [NSObject : AnyObject])
         }
         else {
             return flatErrors.first

@@ -43,7 +43,7 @@ public func => <T, U, V> (first: T -> U, second: U -> V)(input: T) -> V {
 
 /// When used with the function chaining operator (`=>`), chains two Fallible 
 /// operations together, ensuring that the second runs only if the first succeeded. 
-/// It can be thought of as similar to `Optional.map`.
+/// It can be thought of as similar to `Optional.flatMap`.
 /// 
 /// If the previous Fallible operation succeeded, `then` extracts the value and 
 /// passes it to the `operation` function. It then returns the result of 
