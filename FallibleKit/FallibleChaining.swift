@@ -67,7 +67,7 @@ public func then<T, U>(operation: T -> Fallible<U>)(input: Fallible<T>) -> Falli
 /// `mapSuccess` instead of `then` when the operation you want to perform is 
 /// not itself Fallible.
 public func mapSuccess<T, U>(transform: T -> U) -> Fallible<T> -> Fallible<U> {
-    return then { Fallible(succeeded: transform($0)) }
+    return then { Fallible.Success(transform($0)) }
 }
 
 /// When used with the function chaining operator (`=>`), uses the value of a 
