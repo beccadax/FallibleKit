@@ -140,7 +140,7 @@ public func recover<T>(from errorSet: ErrorSet, recovery: ErrorType -> Fallible<
 /// for the original.
 /// 
 /// To convert only certain errors, see `mapFailure(from:transform:)`.
-public func mapFailure<T>(transform: NSError -> NSError) -> Fallible<T> -> Fallible<T> {
+public func mapFailure<T>(transform: ErrorType -> ErrorType) -> Fallible<T> -> Fallible<T> {
     return recover { error in Fallible.Failure (transform(error)) }
 }
 
