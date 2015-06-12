@@ -17,7 +17,7 @@ A Fallible instance may have succeeded or it may have failed:
 */
 
 let okay = Fallible(succeeded: "Hello world!")
-let oops = Fallible<String>(failed: NSError(domain: NSCocoaErrorDomain, code: NSFileReadNoSuchFileError, userInfo: nil))
+let oops = Fallible<String>(failed: NSCocoaError.FileReadNoSuchFileError)
 
 /*:
 If an operation does not return any useful value, but merely wants to report whether it succeeded or failed (and the error if it failed), it should have a return type of `Fallible<Void>`. The syntax for constructing a succeeded `Fallible<Void>` is a little awkward, so FallibleKit includes a `Succeeded` constant you can return instead.
@@ -48,8 +48,7 @@ extension UserData {
         }
         else {
             // Oops, something was missing
-            let error = NSError(domain: NSCocoaErrorDomain, code: NSFileReadCorruptFileError, userInfo: [NSLocalizedDescriptionKey : "The data was not saved correctly." ])
-            return Fallible(failed: error)
+            return Fallible(failed: NSCocoaError.FileReadCorruptFileError)
         }
     }
 }
