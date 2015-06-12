@@ -18,7 +18,7 @@ public struct ErrorSet {
     
     private init(_ input: [String: [Int]]) {
         for (key, values) in input {
-            domainsAndCodes[key] = reduce(values, [:] as [Int: Void]) { (var dict, code) in
+            domainsAndCodes[key] = values.reduce([:] as [Int: Void]) { (var dict, code) in
                 dict[code] = ()
                 return dict
             }
@@ -32,7 +32,7 @@ public func |= (inout lhs: ErrorSet, rhs: ErrorSet) {
     for (domain, rhsCodeDictionary) in rhs.domainsAndCodes {
         let lhsCodeDictionary = lhs.domainsAndCodes[domain] ?? [:]
         
-        lhs.domainsAndCodes[domain] = reduce(rhsCodeDictionary.keys, lhsCodeDictionary) { (var dict, code) in
+        lhs.domainsAndCodes[domain] = rhsCodeDictionary.keys.reduce(lhsCodeDictionary) { (var dict, code) in
             dict[code] = ()
             return dict
         }
@@ -54,18 +54,18 @@ public func ~= (lhs: ErrorSet, rhs: NSError) -> Bool {
 }
 
 /// Constructor for an ErrorSet matching a single error domain and code.
-public func error(#domain: String, #code: Int) -> ErrorSet {
+public func error(domain domain: String, code: Int) -> ErrorSet {
     return ErrorSet([domain: [code]])
 }
 
 /// Constructor for an ErrorSet matching several codes in a single domain.
-public func errors(#domain: String, #codes: [Int]) -> ErrorSet {
+public func errors(domain domain: String, codes: [Int]) -> ErrorSet {
     return ErrorSet([domain: codes])
 }
 
 /// Constructor for an ErrorSet matching several codes in a single domain.
 /// This variant takes a variadic list of error codes; you may instead pass an 
 /// array of error codes.
-public func errors(#domain: String, #codes: Int...) -> ErrorSet {
+public func errors(domain domain: String, codes: Int...) -> ErrorSet {
     return errors(domain: domain, codes: codes)
 }

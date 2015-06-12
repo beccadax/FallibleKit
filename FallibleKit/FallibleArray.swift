@@ -16,7 +16,7 @@ public func filterFailures<T>(array: [Fallible<T>]) -> [T] {
 /// one containing the values of successful operations, the other containing the 
 /// errors of failed operations.
 public func classifyFallibles<T>(array: [Fallible<T>]) -> (successes: [T], failures: [NSError]) {
-    return reduce(array, (successes: [] as [T], failures: [] as [NSError])) { (tuple, elem) in
+    return array.reduce((successes: [] as [T], failures: [] as [NSError])) { (tuple, elem) in
         if let value = elem.value {
             return (successes: tuple.successes + [value], failures: tuple.failures)
         }
@@ -90,7 +90,7 @@ public enum FallibleError: Int {
             if let code = FallibleError(error: error) {
                 switch code {
                 case .MultipleErrors:
-                    return error.userInfo![DetailedErrorsKey] as! [NSError]
+                    return error.userInfo[DetailedErrorsKey] as! [NSError]
                 }
             }
             return [error]
@@ -101,7 +101,7 @@ public enum FallibleError: Int {
     }
     
     static func errorFromErrors(errors: [NSError]) -> NSError? {
-        var flatErrors = reduce(lazy(errors).map(errorsFromError), [], +)
+        var flatErrors = lazy(errors).map(errorsFromError).reduce([], combine: +)
         
         if flatErrors.count > 1 {
             let code = FallibleError.MultipleErrors

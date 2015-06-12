@@ -19,7 +19,7 @@ public let Succeeded = Fallible<Void>(succeeded: ())
 /// Note that, for various technical reasons, you generally shouldn't construct a 
 /// Fallible using `Fallible.Success` and `Fallible.Failure`; instead use the 
 /// `init(succeeded:)` and `init(failed:)` initializers.
-public enum Fallible<ResultType>: Printable {
+public enum Fallible<ResultType>: CustomStringConvertible {
     case Success (Reference<ResultType>)
     case Failure (NSError)
     
@@ -76,7 +76,7 @@ public enum Fallible<ResultType>: Printable {
         case .Success:
             return "Success(\(value!))"
         case .Failure(let error):
-            return "Failure(\(error.domain)/\(error.code) \"\(error.localizedDescription)\" \(error.userInfo!))"
+            return "Failure(\(error.domain)/\(error.code) \"\(error.localizedDescription)\" \(error.userInfo))"
         }
     }
 }

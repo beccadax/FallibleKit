@@ -20,7 +20,7 @@ public class MockViewController {
     public var userData: UserData? = nil
     
     public func presentError(error: NSError) {
-        println(error.description)
+        print(error.description)
     }
 }
 public var rootViewController = MockViewController()
