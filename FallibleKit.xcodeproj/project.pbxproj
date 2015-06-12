@@ -28,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		84143A361B2A5BD000B1E593 /* playground2md.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = playground2md.pl; sourceTree = "<group>"; };
 		845A438C1A1B4E7600BDA057 /* FallibleArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FallibleArray.swift; sourceTree = "<group>"; };
 		84E3478A1A10A5A400994F65 /* FallibleKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FallibleKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		84E3478E1A10A5A400994F65 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -63,6 +64,7 @@
 		84E347801A10A5A400994F65 = {
 			isa = PBXGroup;
 			children = (
+				84143A361B2A5BD000B1E593 /* playground2md.pl */,
 				84E3478C1A10A5A400994F65 /* FallibleKit */,
 				84E347991A10A5A500994F65 /* FallibleKitTests */,
 				84E3478B1A10A5A400994F65 /* Products */,
