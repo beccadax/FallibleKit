@@ -20,19 +20,19 @@ public let Succeeded = Fallible<Void>(succeeded: ())
 /// Fallible using `Fallible.Success` and `Fallible.Failure`; instead use the 
 /// `init(succeeded:)` and `init(failed:)` initializers.
 public enum Fallible<ResultType>: CustomStringConvertible {
-    case Success (Reference<ResultType>)
-    case Failure (NSError)
+    case Success (ResultType)
+    case Failure (ErrorType)
     
     /// Constructs a successful Fallible result, hiding the ugliness of the internal 
     /// `Reference` (which is needed to avoid a feature that Swift 1.1 doesn't 
     /// implement).
     public init(succeeded value: ResultType) {
-        self = .Success(Reference(value))
+        self = .Success(value)
     }
     
     /// Constructs a failed Fallible result. This is a good place to drop a 
     /// breakpoint if you're trying to find the source of a failure.
-    public init(failed error: NSError) {
+    public init(failed error: ErrorType) {
         self = .Failure(error)
     }
         
@@ -54,15 +54,15 @@ public enum Fallible<ResultType>: CustomStringConvertible {
     /// Returns the value if the Fallible operation succeeded, or nil if it failed.
     public var value: ResultType? {
         switch self {
-        case .Success(let reference):
-            return reference.value
+        case .Success(let value):
+            return value
         case .Failure:
             return nil
         }
     }
     
     /// Returns the error if the Fallible operation failed, or nil if it succeeded.
-    public var error: NSError? {
+    public var error: ErrorType? {
         switch self {
         case .Success:
             return nil
@@ -73,21 +73,11 @@ public enum Fallible<ResultType>: CustomStringConvertible {
     
     public var description: String {
         switch self {
-        case .Success:
-            return "Success(\(value!))"
+        case .Success(let value):
+            return "Success(\(value))"
         case .Failure(let error):
-            return "Failure(\(error.domain)/\(error.code) \"\(error.localizedDescription)\" \(error.userInfo))"
+            return "Failure(\(error))"
         }
-    }
-}
-
-/// Wraps a possibly value type in an object. Used by Fallible to get around limits 
-/// on generic enums.
-public class Reference<T> {
-    public let value: T
-    
-    public init(_ val: T) {
-        value = val
     }
 }
 

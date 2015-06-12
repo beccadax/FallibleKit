@@ -55,8 +55,8 @@ public func => <T, U, V> (first: T -> U, second: U -> V)(input: T) -> V {
 /// result.
 public func then<T, U>(operation: T -> Fallible<U>)(input: Fallible<T>) -> Fallible<U> {
     switch input {
-    case .Success(let reference):
-        return operation(reference.value)
+    case .Success(let value):
+        return operation(value)
     case .Failure(let error):
         return Fallible.Failure (error)
     }
@@ -93,7 +93,7 @@ public func useSuccess<T>(usage usage: T -> Void) -> Fallible<T> -> Fallible<T> 
 /// `recovery`, instead returning the current result unchanged.
 /// 
 /// To recover selectively from only certain errors, see `recover(from:recovery:)
-public func recover<T>(recovery: NSError -> Fallible<T>)(input: Fallible<T>) -> Fallible<T> {
+public func recover<T>(recovery: ErrorType -> Fallible<T>)(input: Fallible<T>) -> Fallible<T> {
     switch input {
     case .Success:
         return input
@@ -121,7 +121,7 @@ public func recover<T>(recovery: NSError -> Fallible<T>)(input: Fallible<T>) -> 
 /// from all failures, see `recover(_:)`. To construct error sets, see 
 /// `error(domain:code:)`, `errors(domain:codes:)`, and the error set combining 
 /// operator, `|`.
-public func recover<T>(from errorSet: ErrorSet, recovery: NSError -> Fallible<T>) -> Fallible<T> -> Fallible<T> {
+public func recover<T>(from errorSet: ErrorSet, recovery: ErrorType -> Fallible<T>) -> Fallible<T> -> Fallible<T> {
     return recover { error in
         if errorSet ~= error {
             return recovery(error)
@@ -157,7 +157,7 @@ public func mapFailure<T>(transform: NSError -> NSError) -> Fallible<T> -> Falli
 /// unchanged. To transform all failures, see `mapFailure(transform:)`. To 
 /// construct error sets, see `error(domain:code:)`, `errors(domain:codes:)`, and 
 /// the error set combining operator, `|`.
-public func mapFailure<T>(from errorSet: ErrorSet, transform: NSError -> NSError) -> Fallible<T> -> Fallible<T> {
+public func mapFailure<T>(from errorSet: ErrorSet, transform: ErrorType -> ErrorType) -> Fallible<T> -> Fallible<T> {
     return recover(from: errorSet) { error in Fallible.Failure (transform(error)) }
 }
 
@@ -168,7 +168,7 @@ public func mapFailure<T>(from errorSet: ErrorSet, transform: NSError -> NSError
 /// `recover` instead.
 /// 
 /// To correct only certain errors, see `correct(from:correction:)`.
-public func correct<T>(correction: NSError -> T) -> Fallible<T> -> Fallible<T> {
+public func correct<T>(correction: ErrorType -> T) -> Fallible<T> -> Fallible<T> {
     return recover { error in Fallible(succeeded: correction(error)) }
 }
 
@@ -187,7 +187,7 @@ public func correct<T>(correction: NSError -> T) -> Fallible<T> -> Fallible<T> {
 /// unchanged. To transform all failures, see `correct(correction:)`. To 
 /// construct error sets, see `error(domain:code:)`, `errors(domain:codes:)`, and 
 /// the error set combining operator, `|`.
-public func correct<T>(from errorSet: ErrorSet, correction: NSError -> T) -> Fallible<T> -> Fallible<T> {
+public func correct<T>(from errorSet: ErrorSet, correction: ErrorType -> T) -> Fallible<T> -> Fallible<T> {
     return recover(from: errorSet) { error in Fallible(succeeded: correction(error)) }
 }
 
@@ -203,7 +203,7 @@ public func flatten<T>(value: Fallible<Fallible<T>>) -> Fallible<T> {
 /// failed Fallible operation without changing it in any way.
 /// 
 /// To use only certain errors, see `useFailure(from:usage:)`.
-public func useFailure<T>(usage: NSError -> Void) -> Fallible<T> -> Fallible<T> {
+public func useFailure<T>(usage: ErrorType -> Void) -> Fallible<T> -> Fallible<T> {
     return mapFailure { error in
         usage(error)
         return error
@@ -219,7 +219,7 @@ public func useFailure<T>(usage: NSError -> Void) -> Fallible<T> -> Fallible<T> 
 /// unprocessed. To use all failures, see `useFailure(usage:)`. To 
 /// construct error sets, see `error(domain:code:)`, `errors(domain:codes:)`, and 
 /// the error set combining operator, `|`.
-public func useFailure<T>(from errorSet: ErrorSet, usage: NSError -> Void) -> Fallible<T> -> Fallible<T> {
+public func useFailure<T>(from errorSet: ErrorSet, usage: ErrorType -> Void) -> Fallible<T> -> Fallible<T> {
     return mapFailure(from: errorSet) { error in
         usage(error)
         return error
