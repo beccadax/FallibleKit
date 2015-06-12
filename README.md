@@ -3,7 +3,7 @@ FallibleKit
     import FallibleKit
 FallibleKit is an implementation of functional-style error handling for Swift. Functional-style error handling allows you to easily handle errors by chaining operations together; FallibleKit makes this readable and understandable.
 
-This version of FallibleKit is written in Swift 1.2. It only includes iOS targets, although FallibleKit should be able to run on OS X.
+This version of FallibleKit is written in Swift 2.0. [A Swift 1.2 branch is also available.](https://github.com/brentdax/FallibleKit/tree/v1.x) It only includes iOS targets, although FallibleKit should be able to run on OS X.
 
 Fallible
 ------
@@ -13,21 +13,21 @@ A `Fallible<T>` value represents a value of type `T` that was created in a way t
 A Fallible instance may have succeeded or it may have failed:
 
     let okay = Fallible(succeeded: "Hello world!")
-    let oops = Fallible<String>(failed: NSError(domain: NSCocoaErrorDomain, code: NSFileReadNoSuchFileError, userInfo: nil))
+    let oops = Fallible<String>(failed: NSCocoaError.FileReadNoSuchFileError)
 
 If an operation does not return any useful value, but merely wants to report whether it succeeded or failed (and the error if it failed), it should have a return type of `Fallible<Void>`. The syntax for constructing a succeeded `Fallible<Void>` is a little awkward, so FallibleKit includes a `Succeeded` constant you can return instead.
 
 A successful Fallible instance will have its value in the `value` property; a failed one will have `nil` there. Similarly, a failed Fallible instance will have its error in its `error` property; a successful Fallible instance will have `nil` there. You can also check the `succeeded` and `failed` properties for a simple boolean test.
 
-    okay.succeeded
-    okay.value
-    okay.failed
-    okay.error
+    okay.succeeded          // true
+    okay.value              // "Hello world!"
+    okay.failed             // false
+    okay.error              // nil
 
-    oops.succeeded
-    oops.value
-    oops.failed
-    oops.error
+    oops.succeeded          // false
+    oops.value              // nil
+    oops.failed             // true
+    oops.error              // Foundation.NSCocoaError
 
 To use Fallible, simply wrap the type you would return when successful in `Fallible<>`, then use the `succeeded:` and `failed:` constructors as needed.
 
@@ -40,8 +40,7 @@ To use Fallible, simply wrap the type you would return when successful in `Falli
             }
             else {
                 // Oops, something was missing
-                let error = NSError(domain: NSCocoaErrorDomain, code: NSFileReadCorruptFileError, userInfo: [NSLocalizedDescriptionKey : "The data was not saved correctly." ])
-                return Fallible(failed: error)
+                return Fallible(failed: NSCocoaError.FileReadCorruptFileError)
             }
         }
     }
@@ -49,17 +48,13 @@ To use Fallible, simply wrap the type you would return when successful in `Falli
 Fallibles and Framework APIs
 ---------------------
 
-When you're writing your own APIs, you should have them return (or, for asynchronous calls, pass) `Fallible` types directly, but you have no such luxury with standard Foundation, Cocoa Touch, or Cocoa APIs. If they use the standard `error:` parameter, the `toFallible` function can help you convert their results to Fallible instances.
+When you're writing your own APIs, you should have them return (or, for asynchronous calls, pass) `Fallible` types directly, but you have no such luxury with standard Foundation, Cocoa Touch, or Cocoa APIs. If they use Swift's standard `throws` feature, the `Fallible(catches:)` initializer can help you convert their results to Fallible instances.
 
     public func readPropertyListWithToFallible(URL: NSURL) -> Fallible<AnyObject> {
-        let dataResult = toFallible { (inout error: NSError?) in
-            NSData(contentsOfURL: URL, options: nil, error: &error)
-        }
+        let dataResult = Fallible(catches: try NSData(contentsOfURL: URL, options: []))
     
         if let data = dataResult.value {
-            return toFallible { (inout error: NSError?) in
-                NSPropertyListSerialization.propertyListWithData(data, options: 0, format: nil, error: &error)
-            }
+            return Fallible(catches: try NSPropertyListSerialization.propertyListWithData(data, options: [], format: nil))
         }
         else {
             // Have to convert this to a Fallible<AnyObject>
@@ -67,13 +62,13 @@ When you're writing your own APIs, you should have them return (or, for asynchro
         }
     }
 
-FallibleKit also includes extensions which create Fallible versions of a few APIs. Additions to these extensions are always welcome.
+FallibleKit also includes extensions which create Fallible versions of a few APIs which are, for some reason, awkward to use with FallibleKit. Additions to these extensions are always welcome.
 
     public func readPropertyList(URL: NSURL) -> Fallible<AnyObject> {
-        let dataResult = URL.readData()
+        let dataResult = URL.readData()     // Here
         
         if let data = dataResult.value {
-            return NSPropertyListSerialization.propertyListWithData(data, options: 0, format: nil)
+            return Fallible(catches: try NSPropertyListSerialization.propertyListWithData(data, options: [], format: nil))
         }
         else {
             return Fallible(failed: dataResult.error!)
@@ -90,8 +85,8 @@ Fallible chaining treats your code as a pipeline. Each step in the chain runs in
     readPropertyList(userDataURL) =>
         // This step is run only if we've encounted the specified error.
         // It runs another operation that might fail.
-        recover(from: error(domain: NSCocoaErrorDomain, code: NSFileReadNoSuchFileError)) { error in
-            readPropertyList(emptyDataURL)
+        recover(from: error(NSCocoaError.FileReadNoSuchFileError)) { error in
+            readPropertyList(emptyDataURL) 
         } =>
         // This step is run only if we've successfully read a plist.
         // It takes the plist and performs another operation that might fail.
