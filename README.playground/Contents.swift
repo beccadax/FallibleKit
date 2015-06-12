@@ -25,15 +25,15 @@ If an operation does not return any useful value, but merely wants to report whe
 A successful Fallible instance will have its value in the `value` property; a failed one will have `nil` there. Similarly, a failed Fallible instance will have its error in its `error` property; a successful Fallible instance will have `nil` there. You can also check the `succeeded` and `failed` properties for a simple boolean test.
 */
 
-okay.succeeded
-okay.value
-okay.failed
-okay.error
+okay.succeeded          // true
+okay.value              // "Hello world!"
+okay.failed             // false
+okay.error              // nil
 
-oops.succeeded
-oops.value
-oops.failed
-oops.error
+oops.succeeded          // false
+oops.value              // nil
+oops.failed             // true
+oops.error              // Foundation.NSCocoaError
 
 /*:
 To use Fallible, simply wrap the type you would return when successful in `Fallible<>`, then use the `succeeded:` and `failed:` constructors as needed.
