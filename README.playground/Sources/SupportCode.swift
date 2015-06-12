@@ -5,7 +5,7 @@
 import Foundation
 import XCPlayground
 
-public let userDataURL = NSURL(fileURLWithPath: XCPSharedDataDirectoryPath)!.URLByAppendingPathComponent("userData").URLByAppendingPathExtension("plist")
+public let userDataURL = NSURL(fileURLWithPath: XCPSharedDataDirectoryPath).URLByAppendingPathComponent("userData").URLByAppendingPathExtension("plist")
 public let emptyDataURL = NSBundle.mainBundle().URLForResource("default", withExtension: "plist")!
 
 public struct UserData {
@@ -19,8 +19,8 @@ public struct UserData {
 public class MockViewController {
     public var userData: UserData? = nil
     
-    public func presentError(error: NSError) {
-        print(error.description)
+    public func presentError(error: ErrorType) {
+        print(error)
     }
 }
 public var rootViewController = MockViewController()

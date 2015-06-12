@@ -6,7 +6,7 @@ import FallibleKit
 /*:
 FallibleKit is an implementation of functional-style error handling for Swift. Functional-style error handling allows you to easily handle errors by chaining operations together; FallibleKit makes this readable and understandable.
 
-This version of FallibleKit is written in Swift 1.2. It only includes iOS targets, although FallibleKit should be able to run on OS X.
+This version of FallibleKit is written in Swift 2.0. [A Swift 1.2 branch is also available.](https://github.com/brentdax/FallibleKit/tree/v1.x) It only includes iOS targets, although FallibleKit should be able to run on OS X.
 
 Fallible
 ------
@@ -58,18 +58,14 @@ extension UserData {
 Fallibles and Framework APIs
 ---------------------
 
-When you're writing your own APIs, you should have them return (or, for asynchronous calls, pass) `Fallible` types directly, but you have no such luxury with standard Foundation, Cocoa Touch, or Cocoa APIs. If they use the standard `error:` parameter, the `toFallible` function can help you convert their results to Fallible instances.
+When you're writing your own APIs, you should have them return (or, for asynchronous calls, pass) `Fallible` types directly, but you have no such luxury with standard Foundation, Cocoa Touch, or Cocoa APIs. If they use Swift's standard `throws` feature, the `Fallible(catches:)` initializer can help you convert their results to Fallible instances.
 */
 
 public func readPropertyListWithToFallible(URL: NSURL) -> Fallible<AnyObject> {
-    let dataResult = toFallible { (inout error: NSError?) in
-        NSData(contentsOfURL: URL, options: nil, error: &error)
-    }
+    let dataResult = Fallible(catches: try NSData(contentsOfURL: URL, options: []))
     
     if let data = dataResult.value {
-        return toFallible { (inout error: NSError?) in
-            NSPropertyListSerialization.propertyListWithData(data, options: 0, format: nil, error: &error)
-        }
+        return Fallible(catches: try NSPropertyListSerialization.propertyListWithData(data, options: [], format: nil))
     }
     else {
         // Have to convert this to a Fallible<AnyObject>
@@ -78,14 +74,14 @@ public func readPropertyListWithToFallible(URL: NSURL) -> Fallible<AnyObject> {
 }
 
 /*:
-FallibleKit also includes extensions which create Fallible versions of a few APIs. Additions to these extensions are always welcome.
+FallibleKit also includes extensions which create Fallible versions of a few APIs which are, for some reason, awkward to use with FallibleKit. Additions to these extensions are always welcome.
 */
 
 public func readPropertyList(URL: NSURL) -> Fallible<AnyObject> {
-    let dataResult = URL.readData()
+    let dataResult = URL.readData()     // Here
         
     if let data = dataResult.value {
-        return NSPropertyListSerialization.propertyListWithData(data, options: 0, format: nil)
+        return Fallible(catches: try NSPropertyListSerialization.propertyListWithData(data, options: [], format: nil))
     }
     else {
         return Fallible(failed: dataResult.error!)
@@ -104,8 +100,8 @@ Fallible chaining treats your code as a pipeline. Each step in the chain runs in
 readPropertyList(userDataURL) =>
     // This step is run only if we've encounted the specified error.
     // It runs another operation that might fail.
-    recover(from: error(domain: NSCocoaErrorDomain, code: NSFileReadNoSuchFileError)) { error in
-        readPropertyList(emptyDataURL)
+    recover(from: error(NSCocoaError.FileReadNoSuchFileError)) { error in
+        readPropertyList(emptyDataURL) 
     } =>
     // This step is run only if we've successfully read a plist.
     // It takes the plist and performs another operation that might fail.
