@@ -35,6 +35,16 @@ public enum Fallible<ResultType>: CustomStringConvertible {
     public init(failed error: ErrorType) {
         self = .Failure(error)
     }
+    
+    /// Constructs a Fallible result from a Swift throwing operation.
+    public init(@autoclosure catches operation: Void throws -> ResultType) {
+        do {
+            self.init(succeeded: try operation())
+        }
+        catch {
+            self.init(failed: error)
+        }
+    }
         
     /// Returns true if the operation succeeded.
     public var succeeded: Bool {
@@ -78,43 +88,5 @@ public enum Fallible<ResultType>: CustomStringConvertible {
         case .Failure(let error):
             return "Failure(\(error))"
         }
-    }
-}
-
-/// Constructs a Fallible result from the return value of a call with a 
-/// Cocoa-style NSError parameter. This variant treats nil as the failure value.
-public func toFallible<ResultType>(operation: (inout NSError?) -> ResultType?) -> Fallible<ResultType> {
-    var error: NSError?
-    if let result = operation(&error) {
-        return Fallible(succeeded: result)
-    }
-    else {
-        return Fallible(failed: error!)
-    }
-}
-
-/// Constructs a Fallible result from the return value of a call with a 
-/// Cocoa-style NSError parameter. This variant treats false as the failure value.
-public func toFallible(operation: (inout NSError?) -> Bool) -> Fallible<Void> {
-    var error: NSError?
-    if operation(&error) {
-        return Succeeded
-    }
-    else {
-        return Fallible(failed: error!)
-    }
-}
-
-/// Constructs a Fallible result from the return value of a call with a 
-/// Cocoa-style NSError parameter. This variant allows you to specify the failure 
-/// value.
-public func toFallible<ResultType: Equatable>(failureValue: ResultType, operation: (inout NSError?) -> ResultType) -> Fallible<ResultType> {
-    var error: NSError?
-    let result = operation(&error)
-    if result != failureValue {
-        return Fallible(succeeded: result)
-    }
-    else {
-        return Fallible(failed: error!)
     }
 }
